@@ -1,0 +1,38 @@
+import RPi.GPIO as GPIO
+import time
+
+IN1, IN2, ENA = 17, 27, 18
+IR_SENSOR = 22
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup([IN1, IN2, ENA], GPIO.OUT)
+GPIO.setup(IR_SENSOR, GPIO.IN)
+
+pwm = GPIO.PWM(ENA, 1000)
+pwm.start(0)
+
+def motor_forward(duty=20):
+    GPIO.output(IN1, GPIO.HIGH)
+    GPIO.output(IN2, GPIO.LOW)
+    pwm.ChangeDutyCycle(duty)
+
+def motor_stop():
+    pwm.ChangeDutyCycle(0)
+
+def cleanup():
+    motor_stop()
+    GPIO.cleanup()
+
+try:
+    print("System started")
+    while True:
+        ir_value = GPIO.input(IR_SENSOR)
+        if ir_value == 0:
+            print("Slide Detected")
+            motor_stop()
+            time.sleep(5)
+        else:
+            motor_forward(20)
+        time.sleep(0.01)
+except KeyboardInterrupt:
+    cleanup()
